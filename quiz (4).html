@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz: La renovación de la novela</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14213d;--ink2:#2b3550;--muted:#5b6478;--bg:#eef1f7;--panel:#fff;--line:#d9dfec;--acc:#3b5bdb;--sel:#e8edff;--warm:#c4573e;--ok:#2b8a3e;--bad:#c0392b}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 130px}
+h1,h2{font-family:"Playfair Display",Georgia,serif;margin:0}
+p{margin:0 0 14px}
+.sub{color:var(--muted)}
+:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+
+/* portada */
+.hero{background:var(--ink);color:#f4f1ea;border-radius:20px;padding:44px 28px 40px;margin-bottom:16px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;border:2px solid rgba(255,255,255,.14)}
+.hero h1{font-size:clamp(34px,9vw,52px);line-height:1.08;font-weight:700;position:relative;max-width:11em}
+.hero p{margin:14px 0 0;color:#cfd6e8;position:relative}
+.panel{background:var(--panel);border-radius:20px;padding:28px;box-shadow:0 1px 0 var(--line)}
+label.f{display:block;font-weight:600;margin-bottom:8px}
+#n{width:100%;font:inherit;font-size:20px;padding:16px 18px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
+#n:focus{border-color:var(--acc);outline:none;box-shadow:0 0 0 4px var(--sel)}
+.err{color:var(--bad);min-height:1.5em;margin:8px 0 6px;font-size:16px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:16px 24px;background:var(--acc);color:#fff;cursor:pointer;transition:transform .12s,background .12s}
+.btn:active{transform:scale(.98)}
+.btn.block{width:100%;font-size:19px}
+.btn:disabled{background:#aab3cf;cursor:not-allowed;transform:none}
+.btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--line)}
+.btn.danger{color:var(--bad)}
+
+/* quiz */
+.prog{position:fixed;left:0;right:0;top:0;height:6px;background:var(--line);z-index:5}
+.prog>div{height:100%;width:0;background:var(--acc);transition:width .25s}
+.intro{padding:18px 4px 6px}
+.intro h2{font-size:26px;margin-bottom:4px}
+.q{background:var(--panel);border-radius:20px;padding:22px 20px 12px;margin:0 0 14px;border:0;min-width:0}
+.q legend{float:left;width:100%;padding:0;margin:0 0 14px;display:flex;gap:14px;align-items:flex-start;font-weight:700;font-size:19px;line-height:1.35}
+.q legend+*{clear:both}
+.qn{flex:none;font-family:"Playfair Display",Georgia,serif;font-size:34px;line-height:1;color:var(--warm);min-width:1.4em}
+.opt{display:flex;gap:14px;align-items:center;margin:0 0 10px;padding:14px;border:2px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;transition:border-color .12s,background .12s;min-height:56px}
+.opt:hover{border-color:#aab7e8}
+.opt:has(input:checked){border-color:var(--acc);background:var(--sel)}
+.opt:has(input:focus-visible){outline:3px solid var(--acc);outline-offset:2px}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.l{flex:none;width:34px;height:34px;border-radius:10px;background:var(--bg);display:grid;place-items:center;font-weight:800;font-size:16px;color:var(--ink2)}
+.opt:has(input:checked) .l{background:var(--acc);color:#fff}
+.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:4}
+.bar>div{max-width:720px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px}
+#cnt{font-weight:600;color:var(--muted);font-size:16px}
+
+/* final */
+.final{text-align:center;padding:36px 24px}
+.ring{--p:0;width:190px;height:190px;border-radius:50%;margin:8px auto 22px;display:grid;place-items:center;background:conic-gradient(var(--acc) calc(var(--p)*1%),var(--line) 0)}
+.ring span{width:150px;height:150px;border-radius:50%;background:#fff;display:grid;place-items:center;font-family:"Playfair Display",Georgia,serif;font-size:52px;font-weight:700}
+.final h2{font-size:34px;margin-bottom:8px}
+
+/* panel del profesor */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 14px}
+.stat{background:var(--panel);border-radius:16px;padding:16px 14px;text-align:center}
+.stat b{display:block;font-family:"Playfair Display",Georgia,serif;font-size:32px;line-height:1.1}
+.stat span{font-size:14px;color:var(--muted)}
+.list{background:var(--panel);border-radius:20px;padding:6px 18px;margin-bottom:16px}
+.r{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.r:last-child{border-bottom:0}
+.pos{font-family:"Playfair Display",Georgia,serif;font-size:26px;color:var(--muted);text-align:center}
+.r:nth-child(-n+3) .pos{color:var(--warm)}
+.nm{font-weight:700;overflow-wrap:anywhere}
+.bb{height:8px;border-radius:99px;background:var(--bg);margin-top:6px;overflow:hidden}
+.bb i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .3s}
+.pt{font-weight:800;font-size:20px;white-space:nowrap;text-align:right}
+.pt small{display:block;font-weight:400;font-size:13px;color:var(--muted)}
+.empty{padding:34px 8px;color:var(--muted);text-align:center}
+.live{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:15px;margin:6px 0 14px}
+.live::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--ok)}
+.note{background:#fff7e0;border:1px solid #f0d58a;border-radius:12px;padding:12px 14px;font-size:15px}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+@media (max-width:420px){.panel{padding:22px 18px}.hero{padding:40px 22px 34px}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<script type="module">
+/* ===== CONFIGURACIÓN ===== */
+// Los resultados viajan por ntfy.sh (gratis, sin cuenta). Este nombre es el "buzón" del quiz:
+// no lo compartas, quien lo conozca puede leer los resultados.
+const BUZON = "quiz-novela-579dd41f9128";
+const PALABRA_ADMIN = "respuestas";
+
+/* ===== PREGUNTAS ===== */
+const L = ["A", "B", "C", "D"];
+const Q = [
+  {t:"¿Qué es la renovación de la novela?", o:["Un proceso en el que los escritores transformaron la manera tradicional de escribir novelas","Copiar fielmente las novelas antiguas","Dejar de escribir novelas largas","Traducir novelas a otros idiomas"], c:0},
+  {t:"En lugar de contar la historia solo de principio a fin, ¿qué empezaron a usar algunos autores?", o:["Un solo narrador y orden cronológico","Únicamente diálogos","Saltos en el tiempo, diferentes narradores y pensamientos de los personajes","Solo descripciones de paisajes"], c:2},
+  {t:"¿En qué siglo ocurrió una de las grandes transformaciones de la novela?", o:["Siglo XV","Siglo XVIII","Siglo XIX","Siglo XX"], c:3},
+  {t:"¿En qué décadas tuvo uno de sus momentos más importantes en Hispanoamérica, con el Boom latinoamericano?", o:["1920 y 1930","1960 y 1970","1980 y 1990","1940 y 1950"], c:1},
+  {t:"¿Qué característica profundiza en los pensamientos, sentimientos y conflictos internos de los personajes?", o:["Ruptura del orden cronológico","Nuevas técnicas narrativas","Exploración psicológica","Temas sociales y existenciales"], c:2},
+  {t:"¿Cuáles de estos temas abordan las novelas renovadas?", o:["Solo aventuras de caballeros medievales","La soledad, la identidad, la injusticia y la libertad","Únicamente recetas y costumbres de cocina","Solo historias de animales"], c:1},
+  {t:"¿Quién escribió Ulises (1922)?", o:["Virginia Woolf","Gabriel García Márquez","Julio Cortázar","James Joyce"], c:3},
+  {t:"¿Quién escribió La señora Dalloway (1925)?", o:["Virginia Woolf","James Joyce","Julio Cortázar","Gabriel García Márquez"], c:0},
+  {t:"La novela Rayuela (1963) permite diferentes recorridos de lectura. ¿Quién la escribió?", o:["Gabriel García Márquez","James Joyce","Julio Cortázar","Virginia Woolf"], c:2},
+  {t:"¿Quién combinó la realidad con elementos extraordinarios (realismo mágico) en Cien años de soledad (1967)?", o:["Julio Cortázar","Gabriel García Márquez","James Joyce","Virginia Woolf"], c:1}
+];
+
+/* ===== ALMACENAMIENTO (ntfy.sh) ===== */
+async function initStore(){
+  const base = "https://ntfy.sh/" + BUZON;
+  const K = "quiz-novela-desde";
+  return {
+    save: async o => {
+      const r = await fetch(base, { method: "POST", body: JSON.stringify(o) });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+    },
+    watch: cb => {
+      const vistos = new Map();
+      const es = new EventSource(base + "/sse?since=all");
+      es.addEventListener("message", ev => {
+        try {
+          const m = JSON.parse(ev.data);
+          if (m.event !== "message") return;
+          vistos.set(m.id, JSON.parse(m.message));
+          const desde = +localStorage.getItem(K) || 0;
+          cb([...vistos.values()].filter(r => r.fecha > desde));
+        } catch (e) { console.error(e); }
+      });
+      es.onopen = () => cb([...vistos.values()].filter(r => r.fecha > (+localStorage.getItem(K) || 0)));
+      es.onerror = () => { if (es.readyState === 2) cb(null, { code: "conexión cerrada" }); };
+      return () => es.close();
+    },
+    clear: async () => localStorage.setItem(K, Date.now())
+  };
+}
+const store = await initStore();
+
+/* ===== UTILIDADES ===== */
+const $ = s => document.querySelector(s);
+const app = $("#app");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ===== PANTALLA DE INICIO ===== */
+function showStart(){
+  app.innerHTML = `
+    <section class="hero">
+      <h1>La renovación de la novela</h1>
+      <p>${Q.length} preguntas de opción múltiple sobre la exposición.</p>
+    </section>
+    <form class="panel" id="f" novalidate>
+      <label class="f" for="n">Tu nombre</label>
+      <input id="n" type="text" autocomplete="off" maxlength="40" placeholder="Nombre y apellido">
+      <p class="err" id="e" role="alert"></p>
+      <button class="btn block">Comenzar</button>
+    </form>`;
+  $("#f").onsubmit = ev => {
+    ev.preventDefault();
+    const n = $("#n").value.trim();
+    if (!n) { $("#e").textContent = "Escribe tu nombre para continuar."; $("#n").focus(); return; }
+    if (n.toLowerCase() === PALABRA_ADMIN) return showAdmin();
+    showQuiz(n);
+  };
+}
+
+/* ===== PREGUNTAS ===== */
+function showQuiz(name){
+  app.innerHTML = `
+    <div class="prog"><div id="pb"></div></div>
+    <div class="intro">
+      <h2>Hola, ${esc(name)}</h2>
+      <p class="sub">Elige una opción en cada pregunta. Puedes cambiar tus respuestas antes de enviar.</p>
+    </div>
+    <form id="q">
+      ${Q.map((q, i) => `
+        <fieldset class="q">
+          <legend><span class="qn">${i + 1}</span><span>${esc(q.t)}</span></legend>
+          ${q.o.map((o, j) => `
+            <label class="opt"><input type="radio" name="q${i}" value="${j}"><span class="l">${L[j]}</span><span>${esc(o)}</span></label>`).join("")}
+        </fieldset>`).join("")}
+      <div class="bar"><div>
+        <span id="cnt">0 de ${Q.length} respondidas</span>
+        <button class="btn" id="send" disabled>Enviar respuestas</button>
+      </div></div>
+    </form>`;
+  const form = $("#q");
+  form.onchange = ev => {
+    const done = Q.filter((_, i) => form.querySelector(`input[name=q${i}]:checked`)).length;
+    $("#cnt").textContent = `${done} de ${Q.length} respondidas`;
+    $("#pb").style.width = (done / Q.length * 100) + "%";
+    $("#send").disabled = done < Q.length;
+    const next = ev.target.closest(".q")?.nextElementSibling;
+    if (next && next.classList.contains("q") && !next.querySelector("input:checked")) {
+      setTimeout(() => next.scrollIntoView({ behavior: "smooth", block: "center" }), 250);
+    }
+  };
+  form.onsubmit = async ev => {
+    ev.preventDefault();
+    const btn = $("#send"); btn.disabled = true; btn.textContent = "Enviando…";
+    const ans = Q.map((_, i) => +form.querySelector(`input[name=q${i}]:checked`).value);
+    const score = ans.filter((a, i) => a === Q[i].c).length;
+    try {
+      await store.save({ nombre: name, puntaje: score, total: Q.length, respuestas: ans.map(a => L[a]).join(""), fecha: Date.now() });
+      showDone(name, score);
+    } catch (e) {
+      console.error(e); btn.disabled = false; btn.textContent = "Enviar respuestas";
+      alert("No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.");
+    }
+  };
+  scrollTo(0, 0);
+}
+
+function showDone(name, score){
+  const p = score / Q.length * 100;
+  const msg = p >= 90 ? "Excelente" : p >= 70 ? "Muy bien" : p >= 50 ? "Bien, repasa un poco" : "Repasa la presentación";
+  app.innerHTML = `
+    <section class="panel final">
+      <div class="ring" style="--p:${p}"><span>${score}/${Q.length}</span></div>
+      <h2>${msg}</h2>
+      <p class="sub">Gracias, ${esc(name)}. Tus respuestas ya llegaron a tu profesor. Puedes cerrar esta página.</p>
+    </section>`;
+  scrollTo(0, 0);
+}
+
+/* ===== PANEL DE RESULTADOS ===== */
+function showAdmin(){
+  app.innerHTML = `
+    <div class="intro"><h2>Resultados</h2></div>
+    <p class="live">En vivo: se actualiza solo</p>
+    <div class="stats" id="stats"></div>
+    <div id="list"></div>
+    <div class="row">
+      <button class="btn ghost" id="out">Salir</button>
+      <button class="btn ghost danger" id="clr">Reiniciar lista</button>
+    </div>`;
+  const stop = store.watch((rows, err) => {
+    if (!rows) { console.error(err); $("#list").innerHTML = `<p class="note">No se pudieron leer los resultados (${esc(err && err.code || "error")}). Revisa tu conexión a internet.</p>`; return; }
+    rows.sort((a, b) => b.puntaje - a.puntaje || a.fecha - b.fecha);
+    const n = rows.length;
+    const avg = n ? (rows.reduce((s, r) => s + r.puntaje, 0) / n).toFixed(1) : "–";
+    $("#stats").innerHTML = `
+      <div class="stat"><b>${n}</b><span>${n === 1 ? "terminó" : "terminaron"}</span></div>
+      <div class="stat"><b>${avg}</b><span>promedio</span></div>
+      <div class="stat"><b>${n ? rows[0].puntaje : "–"}</b><span>mejor puntaje</span></div>`;
+    $("#list").innerHTML = n ? `<div class="list">${rows.map((r, i) => `
+      <div class="r">
+        <div class="pos">${i + 1}</div>
+        <div><div class="nm">${esc(r.nombre)}</div><div class="bb"><i style="width:${r.puntaje / r.total * 100}%"></i></div></div>
+        <div class="pt">${r.puntaje}/${r.total}<small>${new Date(r.fecha).toLocaleTimeString("es", {hour:"2-digit", minute:"2-digit"})}</small></div>
+      </div>`).join("")}</div>`
+      : `<div class="list"><p class="empty">Aún nadie ha enviado. Cada resultado aparece aquí al instante.</p></div>`;
+  });
+  $("#out").onclick = () => { if (typeof stop === "function") stop(); showStart(); };
+  $("#clr").onclick = () => { if (confirm("¿Ocultar los resultados actuales y empezar una lista nueva?")) store.clear().then(() => { if (typeof stop === "function") stop(); showAdmin(); }); };
+}
+
+showStart();
+</script>
+</body>
+</html>
