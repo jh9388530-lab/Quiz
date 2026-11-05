@@ -2,87 +2,123 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a3fd0">
 <title>Quiz: La renovación de la novela</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800;9..144,900&family=Figtree:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#14213d;--ink2:#2b3550;--muted:#5b6478;--bg:#eef1f7;--panel:#fff;--line:#d9dfec;--acc:#3b5bdb;--sel:#e8edff;--warm:#c4573e;--ok:#2b8a3e;--bad:#c0392b}
+:root{
+  --cobalt:#2a3fd0;--cobalt-d:#1b2a9c;--cobalt-l:#e6e9fc;
+  --ink:#141629;--ink2:#343852;--muted:#646981;
+  --bg:#f0f1f8;--panel:#fff;--line:#d9dcec;
+  --sun:#f2b632;--sun-l:#fff4d6;
+  --ok:#1f8a4c;--bad:#c23b3b;
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --sans:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-main{max-width:720px;margin:0 auto;padding:20px 16px 130px}
-h1,h2{font-family:"Playfair Display",Georgia,serif;margin:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+main{max-width:720px;margin:0 auto;padding:18px 16px 140px}
+h1,h2{font-family:var(--serif);margin:0}
 p{margin:0 0 14px}
 .sub{color:var(--muted)}
-:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
 
-/* portada */
-.hero{background:var(--ink);color:#f4f1ea;border-radius:20px;padding:44px 28px 40px;margin-bottom:16px;position:relative;overflow:hidden}
-.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;border:2px solid rgba(255,255,255,.14)}
-.hero h1{font-size:clamp(34px,9vw,52px);line-height:1.08;font-weight:700;position:relative;max-width:11em}
-.hero p{margin:14px 0 0;color:#cfd6e8;position:relative}
-.panel{background:var(--panel);border-radius:20px;padding:28px;box-shadow:0 1px 0 var(--line)}
-label.f{display:block;font-weight:600;margin-bottom:8px}
-#n{width:100%;font:inherit;font-size:20px;padding:16px 18px;border:2px solid var(--line);border-radius:12px;background:#fff;color:var(--ink)}
-#n:focus{border-color:var(--acc);outline:none;box-shadow:0 0 0 4px var(--sel)}
-.err{color:var(--bad);min-height:1.5em;margin:8px 0 6px;font-size:16px}
-.btn{font:inherit;font-weight:700;border:0;border-radius:12px;padding:16px 24px;background:var(--acc);color:#fff;cursor:pointer;transition:transform .12s,background .12s}
-.btn:active{transform:scale(.98)}
+/* ===== portada ===== */
+.hero{position:relative;overflow:hidden;background:var(--cobalt);color:#fff;border-radius:28px;padding:52px 28px 44px;margin-bottom:14px;isolation:isolate}
+.hero::before{content:"¶";position:absolute;right:-18px;top:-70px;font:900 340px/1 var(--serif);color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.16);z-index:-1;pointer-events:none}
+.hero h1{font-size:clamp(40px,11vw,64px);line-height:1;font-weight:900;letter-spacing:-.02em}
+.hero h1 span{display:block}
+.hero h1 span:nth-child(2){padding-left:1.1em}
+.hero h1 span:nth-child(3){padding-left:.4em;color:var(--sun)}
+.hero p{margin:22px 0 0;color:#d6dcff;max-width:26em}
+.hero .rise{animation:rise .7s cubic-bezier(.2,.7,.2,1) both}
+.hero h1 span:nth-child(2){animation-delay:.12s}
+.hero h1 span:nth-child(3){animation-delay:.24s}
+.hero p{animation:rise .7s .4s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+.panel{background:var(--panel);border-radius:24px;padding:28px;box-shadow:0 10px 30px -18px rgba(20,22,41,.25)}
+label.f{display:block;font-weight:800;margin-bottom:10px}
+#n{width:100%;font:inherit;font-size:20px;padding:16px 18px;border:2px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+#n:focus{border-color:var(--cobalt);outline:none;box-shadow:0 0 0 4px var(--cobalt-l)}
+.err{color:var(--bad);min-height:1.5em;margin:8px 0 8px;font-size:16px}
+.btn{font:inherit;font-weight:800;border:0;border-radius:14px;padding:16px 26px;background:var(--cobalt);color:#fff;cursor:pointer;transition:transform .12s,background .15s,box-shadow .15s;box-shadow:0 6px 0 var(--cobalt-d)}
+.btn:hover{background:#3349dd}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--cobalt-d)}
 .btn.block{width:100%;font-size:19px}
-.btn:disabled{background:#aab3cf;cursor:not-allowed;transform:none}
-.btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--line)}
+.btn:disabled{background:#b4bbdb;box-shadow:0 6px 0 #9aa2c8;cursor:not-allowed}
+.btn:disabled:active{transform:none;box-shadow:0 6px 0 #9aa2c8}
+.btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--line);box-shadow:none}
+.btn.ghost:hover{border-color:var(--cobalt)}
+.btn.ghost:active{transform:scale(.98)}
 .btn.danger{color:var(--bad)}
 
-/* quiz */
-.prog{position:fixed;left:0;right:0;top:0;height:6px;background:var(--line);z-index:5}
-.prog>div{height:100%;width:0;background:var(--acc);transition:width .25s}
-.intro{padding:18px 4px 6px}
-.intro h2{font-size:26px;margin-bottom:4px}
-.q{background:var(--panel);border-radius:20px;padding:22px 20px 12px;margin:0 0 14px;border:0;min-width:0}
-.q legend{float:left;width:100%;padding:0;margin:0 0 14px;display:flex;gap:14px;align-items:flex-start;font-weight:700;font-size:19px;line-height:1.35}
+/* ===== preguntas ===== */
+.prog{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;gap:4px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top));background:rgba(240,241,248,.92);backdrop-filter:blur(8px)}
+.prog i{flex:1;height:8px;border-radius:99px;background:var(--line);transition:background .25s}
+.prog i.on{background:var(--cobalt)}
+.intro{padding:34px 4px 10px}
+.intro h2{font-size:30px;font-weight:800;line-height:1.1;margin-bottom:6px}
+.q{position:relative;background:var(--panel);border-radius:24px;padding:24px 20px 12px;margin:0 0 16px;border:0;min-width:0;box-shadow:0 10px 30px -20px rgba(20,22,41,.3)}
+.q::before{content:"";position:absolute;left:0;top:26px;bottom:26px;width:5px;border-radius:0 6px 6px 0;background:var(--line);transition:background .2s}
+.q.done::before{background:var(--sun)}
+.q legend{float:left;width:100%;padding:0;margin:0 0 16px;display:flex;gap:14px;align-items:flex-start;font-weight:800;font-size:19px;line-height:1.35}
 .q legend+*{clear:both}
-.qn{flex:none;font-family:"Playfair Display",Georgia,serif;font-size:34px;line-height:1;color:var(--warm);min-width:1.4em}
-.opt{display:flex;gap:14px;align-items:center;margin:0 0 10px;padding:14px;border:2px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;transition:border-color .12s,background .12s;min-height:56px}
-.opt:hover{border-color:#aab7e8}
-.opt:has(input:checked){border-color:var(--acc);background:var(--sel)}
-.opt:has(input:focus-visible){outline:3px solid var(--acc);outline-offset:2px}
+.qn{flex:none;font-family:var(--serif);font-weight:900;font-size:44px;line-height:.9;color:var(--cobalt);min-width:1.1em}
+.opt{display:flex;gap:14px;align-items:center;margin:0 0 10px;padding:12px 14px;border:2px solid var(--line);border-radius:16px;background:#fff;cursor:pointer;transition:border-color .15s,background .15s,transform .12s;min-height:58px}
+.opt:hover{border-color:#9fa9ec}
+.opt:active{transform:scale(.99)}
+.opt:has(input:checked){border-color:var(--cobalt);background:var(--cobalt-l)}
+.opt:has(input:focus-visible){outline:3px solid var(--sun);outline-offset:2px}
 .opt input{position:absolute;opacity:0;pointer-events:none}
-.l{flex:none;width:34px;height:34px;border-radius:10px;background:var(--bg);display:grid;place-items:center;font-weight:800;font-size:16px;color:var(--ink2)}
-.opt:has(input:checked) .l{background:var(--acc);color:#fff}
-.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:4}
+.l{flex:none;width:36px;height:36px;border-radius:50%;background:var(--bg);display:grid;place-items:center;font-weight:800;font-size:16px;color:var(--ink2);transition:background .15s,color .15s}
+.opt:has(input:checked) .l{background:var(--cobalt);color:#fff}
+.bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));z-index:4}
 .bar>div{max-width:720px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px}
 #cnt{font-weight:600;color:var(--muted);font-size:16px}
+.bar .btn{padding:14px 20px;box-shadow:0 5px 0 var(--cobalt-d)}
+.bar .btn:disabled{box-shadow:0 5px 0 #9aa2c8}
 
-/* final */
-.final{text-align:center;padding:36px 24px}
-.ring{--p:0;width:190px;height:190px;border-radius:50%;margin:8px auto 22px;display:grid;place-items:center;background:conic-gradient(var(--acc) calc(var(--p)*1%),var(--line) 0)}
-.ring span{width:150px;height:150px;border-radius:50%;background:#fff;display:grid;place-items:center;font-family:"Playfair Display",Georgia,serif;font-size:52px;font-weight:700}
-.final h2{font-size:34px;margin-bottom:8px}
+/* ===== final ===== */
+.final{text-align:center;padding:40px 24px}
+.ring{--p:0;width:200px;height:200px;border-radius:50%;margin:6px auto 24px;display:grid;place-items:center;background:conic-gradient(var(--cobalt) calc(var(--p)*1%),var(--line) 0)}
+.ring span{width:158px;height:158px;border-radius:50%;background:#fff;display:grid;place-items:center;font-family:var(--serif);font-size:58px;font-weight:900;color:var(--cobalt)}
+.final h2{font-size:36px;font-weight:900;margin-bottom:10px}
+.final .sub{max-width:24em;margin-inline:auto}
 
-/* panel del profesor */
+/* ===== panel del profesor ===== */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 14px}
-.stat{background:var(--panel);border-radius:16px;padding:16px 14px;text-align:center}
-.stat b{display:block;font-family:"Playfair Display",Georgia,serif;font-size:32px;line-height:1.1}
+.stat{background:var(--panel);border-radius:20px;padding:18px 12px;text-align:center;box-shadow:0 10px 30px -22px rgba(20,22,41,.4)}
+.stat:first-child{background:var(--cobalt);color:#fff}
+.stat:first-child span{color:#d6dcff}
+.stat b{display:block;font-family:var(--serif);font-weight:900;font-size:38px;line-height:1.1}
 .stat span{font-size:14px;color:var(--muted)}
-.list{background:var(--panel);border-radius:20px;padding:6px 18px;margin-bottom:16px}
-.r{display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.list{background:var(--panel);border-radius:24px;padding:6px 18px;margin-bottom:16px;box-shadow:0 10px 30px -22px rgba(20,22,41,.4)}
+.r{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
 .r:last-child{border-bottom:0}
-.pos{font-family:"Playfair Display",Georgia,serif;font-size:26px;color:var(--muted);text-align:center}
-.r:nth-child(-n+3) .pos{color:var(--warm)}
-.nm{font-weight:700;overflow-wrap:anywhere}
+.pos{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-weight:800;font-size:18px;background:var(--bg);color:var(--muted)}
+.r:nth-child(1) .pos{background:var(--sun);color:var(--ink)}
+.r:nth-child(2) .pos{background:#dfe2ef;color:var(--ink)}
+.r:nth-child(3) .pos{background:#f1d3b8;color:var(--ink)}
+.nm{font-weight:800;overflow-wrap:anywhere}
 .bb{height:8px;border-radius:99px;background:var(--bg);margin-top:6px;overflow:hidden}
-.bb i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .3s}
+.bb i{display:block;height:100%;background:var(--cobalt);border-radius:99px;transition:width .4s}
+.r:nth-child(1) .bb i{background:var(--sun)}
 .pt{font-weight:800;font-size:20px;white-space:nowrap;text-align:right}
 .pt small{display:block;font-weight:400;font-size:13px;color:var(--muted)}
-.empty{padding:34px 8px;color:var(--muted);text-align:center}
-.live{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:15px;margin:6px 0 14px}
-.live::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--ok)}
-.note{background:#fff7e0;border:1px solid #f0d58a;border-radius:12px;padding:12px 14px;font-size:15px}
+.empty{padding:36px 8px;color:var(--muted);text-align:center}
+.live{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:15px;margin:4px 0 14px}
+.live::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--ok);animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(31,138,76,.5)}70%,100%{box-shadow:0 0 0 9px rgba(31,138,76,0)}}
+.note{background:var(--sun-l);border:1px solid #f0d58a;border-radius:14px;padding:12px 14px;font-size:15px}
 .row{display:flex;gap:12px;flex-wrap:wrap}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
-@media (max-width:420px){.panel{padding:22px 18px}.hero{padding:40px 22px 34px}}
+
+@media (prefers-reduced-motion:reduce){*,*::before{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+@media (max-width:420px){.panel{padding:22px 18px}.hero{padding:44px 22px 36px}.hero::before{font-size:260px}}
 </style>
 </head>
 <body>
@@ -145,7 +181,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">"
 function showStart(){
   app.innerHTML = `
     <section class="hero">
-      <h1>La renovación de la novela</h1>
+      <h1><span class="rise">La renovación</span><span class="rise">de la</span><span class="rise">novela</span></h1>
       <p>${Q.length} preguntas de opción múltiple sobre la exposición.</p>
     </section>
     <form class="panel" id="f" novalidate>
@@ -166,7 +202,7 @@ function showStart(){
 /* ===== PREGUNTAS ===== */
 function showQuiz(name){
   app.innerHTML = `
-    <div class="prog"><div id="pb"></div></div>
+    <div class="prog" aria-hidden="true">${Q.map(() => "<i></i>").join("")}</div>
     <div class="intro">
       <h2>Hola, ${esc(name)}</h2>
       <p class="sub">Elige una opción en cada pregunta. Puedes cambiar tus respuestas antes de enviar.</p>
@@ -184,10 +220,16 @@ function showQuiz(name){
       </div></div>
     </form>`;
   const form = $("#q");
+  const segs = document.querySelectorAll(".prog i");
   form.onchange = ev => {
-    const done = Q.filter((_, i) => form.querySelector(`input[name=q${i}]:checked`)).length;
+    let done = 0;
+    Q.forEach((_, i) => {
+      const ok = !!form.querySelector(`input[name=q${i}]:checked`);
+      if (ok) done++;
+      segs[i].classList.toggle("on", ok);
+      form.querySelectorAll(".q")[i].classList.toggle("done", ok);
+    });
     $("#cnt").textContent = `${done} de ${Q.length} respondidas`;
-    $("#pb").style.width = (done / Q.length * 100) + "%";
     $("#send").disabled = done < Q.length;
     const next = ev.target.closest(".q")?.nextElementSibling;
     if (next && next.classList.contains("q") && !next.querySelector("input:checked")) {
@@ -215,10 +257,14 @@ function showDone(name, score){
   const msg = p >= 90 ? "Excelente" : p >= 70 ? "Muy bien" : p >= 50 ? "Bien, repasa un poco" : "Repasa la presentación";
   app.innerHTML = `
     <section class="panel final">
-      <div class="ring" style="--p:${p}"><span>${score}/${Q.length}</span></div>
+      <div class="ring" id="ring" style="--p:0"><span>${score}/${Q.length}</span></div>
       <h2>${msg}</h2>
       <p class="sub">Gracias, ${esc(name)}. Tus respuestas ya llegaron a tu profesor. Puedes cerrar esta página.</p>
     </section>`;
+  // el anillo se llena una sola vez al mostrar el resultado
+  const ring = $("#ring");
+  if (matchMedia("(prefers-reduced-motion:reduce)").matches) ring.style.setProperty("--p", p);
+  else { let v = 0; const t = setInterval(() => { v = Math.min(p, v + 3); ring.style.setProperty("--p", v); if (v >= p) clearInterval(t); }, 16); }
   scrollTo(0, 0);
 }
 
