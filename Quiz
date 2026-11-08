@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Estrellas que te copian</title>
+<style>
+:root{--bg:#02030a;--fg:#e8ecff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#ui{position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px))}
+button,label.btn{background:rgba(20,26,60,.8);color:var(--fg);border:1px solid rgba(122,162,255,.5);border-radius:999px;padding:11px 18px;font-size:14px;cursor:pointer;font-family:inherit}
+button:active,label.btn:active{background:rgba(122,162,255,.4)}
+[hidden]{display:none!important}
+#msg{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:0;right:0;text-align:center;font-size:14px;line-height:1.4;padding:0 16px;opacity:.9}
+#msg.err{color:#ffb4b4}
+#v{position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none}
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<video id="v" playsinline webkit-playsinline muted autoplay></video>
+<div id="msg">Miles de estrellas. Activa la cámara para que te copien.</div>
+<div id="ui">
+  <button id="bCam">📷 Activar cámara</button>
+  <label class="btn" id="bFoto" for="fFoto">🖼️ Foto / imagen</label>
+  <input id="fFoto" type="file" accept="image/*">
+  <button id="bCol" hidden>Color: blanco</button>
+  <button id="bFlip" hidden>🔄 Cambiar cámara</button>
+  <button id="bStop" hidden>✨ Solo estrellas</button>
+</div>
+<script>
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id);
+const cv=$('c'),ctx=cv.getContext('2d',{alpha:false});
+const vid=$('v'),msg=$('msg');
+const bCam=$('bCam'),bCol=$('bCol'),bFlip=$('bFlip'),bStop=$('bStop'),fFoto=$('fFoto');
+function say(t,err){msg.textContent=t;msg.className=err?'err':''}
+
+/* ---------- lienzo ---------- */
+let W=0,H=0,img,buf32;
+function resize(){
+  const oW=W,oH=H;
+  const s=Math.min(1,1100/Math.max(innerWidth,innerHeight,1));
+  const nW=Math.max(100,Math.floor(innerWidth*s)),nH=Math.max(100,Math.floor(innerHeight*s));
+  if(nW===W&&nH===H)return;
+  W=cv.width=nW;H=cv.height=nH;
+  img=ctx.createImageData(W,H);buf32=new Uint32Array(img.data.buffer);
+  if(oW&&oH&&typeof px!=='undefined'){
+    const fx=W/oW,fy=H/oH;
+    for(let i=0;i<N;i++){px[i]*=fx;py[i]*=fy;sx[i]*=fx;sy[i]*=fy}
+  }
+}
+
+/* ---------- partículas ---------- */
+const N=11000,GW=128,GH=96;
+const px=new Float32Array(N),py=new Float32Array(N),vx=new Float32Array(N),vy=new Float32Array(N);
+const sx=new Float32Array(N),sy=new Float32Array(N),sz=new Float32Array(N);
+const cx=new Uint8Array(N),cy=new Uint8Array(N),rr=new Float32Array(N),jx=new Float32Array(N),jy=new Float32Array(N),tw=new Float32Array(N);
+resize();
+for(let i=0;i<N;i++){
+  sx[i]=Math.random()*W;sy[i]=Math.random()*H;sz[i]=.2+Math.random()*.8;
+  px[i]=sx[i];py[i]=sy[i];
+  cx[i]=Math.random()*GW|0;cy[i]=Math.random()*GH|0;rr[i]=Math.random();
+  jx[i]=Math.random();jy[i]=Math.random();tw[i]=Math.random()*6.28;
+}
+addEventListener('resize',resize);
+addEventListener('orientationchange',()=>setTimeout(resize,250));
+
+/* ---------- interacción: los dedos apartan las partículas ---------- */
+let ptr=null;
+cv.addEventListener('pointerdown',e=>{ptr={x:e.clientX*W/innerWidth,y:e.clientY*H/innerHeight}});
+cv.addEventListener('pointermove',e=>{if(ptr){ptr.x=e.clientX*W/innerWidth;ptr.y=e.clientY*H/innerHeight}});
+['pointerup','pointercancel','pointerleave'].forEach(n=>cv.addEventListener(n,()=>{ptr=null}));
+
+/* ---------- fuente de imagen ---------- */
+const sc=document.createElement('canvas');sc.width=GW;sc.height=GH;
+const sctx=sc.getContext('2d',{willReadFrequently:true});
+const lum=new Float32Array(GW*GH),col=new Uint8Array(GW*GH*3),sm=new Float32Array(GW*GH);
+let mode='stars';          // 'stars' | 'cam' | 'photo'
+let colorMode=false,facing='user',stream=null,photoEl=null,photoDirty=false;
+
+function processFrame(src,sw0,sh0,mirror,smooth){
+  const ar=GW/GH;let sw=sw0,sh=sw0/ar;
+  if(sh>sh0){sh=sh0;sw=sh0*ar}
+  sctx.save();
+  if(mirror){sctx.translate(GW,0);sctx.scale(-1,1)}
+  sctx.drawImage(src,(sw0-sw)/2,(sh0-sh)/2,sw,sh,0,0,GW,GH);
+  sctx.restore();
+  let d;
+  try{d=sctx.getImageData(0,0,GW,GH).data}catch(e){say('El navegador bloqueó la lectura de la imagen.',true);return false}
+  const hist=new Uint16Array(256),n=GW*GH;
+  for(let i=0;i<n;i++){
+    const r=d[i*4],g=d[i*4+1],b=d[i*4+2];
+    const l=.299*r+.587*g+.114*b;
+    sm[i]=smooth?sm[i]*.5+l*.5:l;
+    col[i*3]=r;col[i*3+1]=g;col[i*3+2]=b;
+    hist[Math.min(255,sm[i]|0)]++;
+  }
+  let a=0,lo=0,hi=255,gotLo=false;
+  for(let k=0;k<256;k++){a+=hist[k];if(!gotLo&&a>=n*.05){lo=k;gotLo=true}if(a>=n*.97){hi=k;break}}
+  if(hi-lo<30)hi=lo+30;
+  for(let i=0;i<n;i++){
+    let v=(sm[i]-lo)/(hi-lo);v=v<0?0:v>1?1:v;
+    lum[i]=v*v*(3-2*v);
+  }
+  return true;
+}
+function sample(){
+  if(mode==='cam'){
+    if(vid.readyState>=2&&vid.videoWidth>0)processFrame(vid,vid.videoWidth,vid.videoHeight,facing==='user',true);
+  }else if(mode==='photo'&&photoDirty&&photoEl){
+    photoDirty=false;
+    processFrame(photoEl,photoEl.naturalWidth,photoEl.naturalHeight,false,false);
+  }
+}
+
+/* ---------- bucle ---------- */
+const bg=(255<<24)|(10<<16)|(3<<8)|2;
+let last=performance.now(),t=0,activeN=N,fpsAcc=0,fpsCnt=0,running=true;
+function frame(now){
+  requestAnimationFrame(frame);
+  if(!running){last=now;return}
+  try{
+  const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;
+  // ajuste automático de rendimiento
+  fpsAcc+=dt;fpsCnt++;
+  if(fpsAcc>2){const fps=fpsCnt/fpsAcc;fpsAcc=0;fpsCnt=0;
+    if(fps<38&&activeN>3500)activeN=Math.floor(activeN*.8);
+    else if(fps>57&&activeN<N)activeN=Math.min(N,Math.floor(activeN*1.1));}
+  sample();
+  buf32.fill(bg);
+  const cs=Math.min(W/GW,H/GH)*.92;
+  const ox=(W-GW*cs)/2,oy=(H-GH*cs)/2-H*.02;
+  const formed=mode!=='stars';
+  for(let i=0;i<activeN;i++){
+    sx[i]-=sz[i]*8*dt;if(sx[i]<0){sx[i]+=W;sy[i]=Math.random()*H}
+    let tx=sx[i],ty=sy[i],bri=.35+.65*sz[i]*(.6+.4*Math.sin(t*2+tw[i])),R=190,G=205,B=255,form=false;
+    if(formed){
+      const k=cy[i]*GW+cx[i],l=lum[k];
+      if(l>rr[i]*.95+.04){
+        form=true;
+        tx=ox+(cx[i]+jx[i])*cs;ty=oy+(cy[i]+jy[i])*cs;
+        bri=.5+.5*l;
+        if(colorMode){R=col[k*3];G=col[k*3+1];B=col[k*3+2];const m=Math.max(R,G,B,1);R=R/m*255;G=G/m*255;B=B/m*255}
+        else{R=G=B=255}
+      }
+    }
+    const f=form?.14:.05;
+    let ax=(tx-px[i])*f,ay=(ty-py[i])*f;
+    if(ptr){const dx=px[i]-ptr.x,dy=py[i]-ptr.y,d2=dx*dx+dy*dy;
+      if(d2<6400){const q=(1-d2/6400)*6/(Math.sqrt(d2)+1);ax+=dx*q;ay+=dy*q}}
+    vx[i]=(vx[i]+ax)*.8;vy[i]=(vy[i]+ay)*.8;
+    px[i]+=vx[i];py[i]+=vy[i];
+    const X=px[i]|0,Y=py[i]|0;
+    if(X<0||Y<0||X>=W-1||Y>=H-1)continue;
+    const c=(255<<24)|((B*bri|0)<<16)|((G*bri|0)<<8)|(R*bri|0);
+    const p=Y*W+X;buf32[p]=c;
+    if(form||sz[i]>.75){buf32[p+1]=c;buf32[p+W]=c}
+  }
+  ctx.putImageData(img,0,0);
+  }catch(e){console.error(e)}
+}
+requestAnimationFrame(frame);
+document.addEventListener('visibilitychange',()=>{
+  running=!document.hidden;
+  if(running&&mode==='cam'&&(!stream||stream.getTracks().every(t=>t.readyState==='ended')))startCam();
+});
+
+/* ---------- cámara ---------- */
+function stopStream(){
+  if(stream){stream.getTracks().forEach(t=>{t.onended=null;t.stop()});stream=null}
+  vid.srcObject=null;
+}
+function getUM(c){
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)return navigator.mediaDevices.getUserMedia(c);
+  const old=navigator.getUserMedia||navigator.webkitGetUserMedia||navigator.mozGetUserMedia;
+  if(old)return new Promise((ok,no)=>old.call(navigator,c,ok,no));
+  const e=new Error('sin-api');e.name='NoApi';return Promise.reject(e);
+}
+function explain(e){
+  switch(e&&e.name){
+    case 'NoApi': return 'Este navegador no deja usar la cámara aquí. '+(window.isSecureContext?'':'Abre el archivo desde una dirección https (por ejemplo GitHub Pages o el link del artefacto) o usa el botón “Foto / imagen”.');
+    case 'NotAllowedError': case 'PermissionDeniedError': return 'Permiso denegado. Toca el candado de la barra de direcciones, permite la cámara y vuelve a pulsar el botón. Si esto está dentro de una vista previa, ábrelo en el navegador.';
+    case 'SecurityError': return 'El navegador bloqueó la cámara por seguridad. Usa una dirección https o el botón “Foto / imagen”.';
+    case 'NotFoundError': case 'DevicesNotFoundError': case 'OverconstrainedError': return 'No se encontró una cámara en este dispositivo.';
+    case 'NotReadableError': case 'TrackStartError': case 'AbortError': return 'La cámara está ocupada por otra aplicación. Ciérrala e inténtalo otra vez.';
+    default: return 'No se pudo abrir la cámara ('+((e&&(e.name||e.message))||'error')+'). Prueba “Foto / imagen”.';
+  }
+}
+let starting=false;
+async function startCam(){
+  if(starting)return;starting=true;bCam.disabled=true;
+  say('Pidiendo permiso de cámara… acepta el aviso del navegador.');
+  stopStream();
+  try{
+    const tries=[
+      {video:{facingMode:{ideal:facing},width:{ideal:640},height:{ideal:480}},audio:false},
+      {video:{facingMode:facing},audio:false},
+      {video:true,audio:false}
+    ];
+    let s=null,lastErr=null;
+    for(const c of tries){
+      try{s=await getUM(c);break}catch(e){lastErr=e;
+        if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'||e.name==='SecurityError'||e.name==='NoApi')break}
+    }
+    if(!s)throw lastErr||new Error('sin-stream');
+    stream=s;
+    s.getTracks().forEach(t=>{t.onended=()=>{if(mode==='cam'){say('La cámara se desconectó. Pulsa para reintentar.',true);mode='stars';showUI()}}});
+    vid.srcObject=s;
+    await new Promise((ok,no)=>{
+      const to=setTimeout(()=>no(Object.assign(new Error('timeout'),{name:'AbortError'})),8000);
+      const done=()=>{clearTimeout(to);ok()};
+      if(vid.readyState>=1)done();else vid.onloadedmetadata=done;
+    });
+    try{await vid.play()}catch(e){/* autoplay ya activo */}
+    // facing real según la cámara que entregó el navegador
+    try{const st=s.getVideoTracks()[0].getSettings();if(st.facingMode)facing=st.facingMode==='environment'?'environment':'user'}catch(e){}
+    mode='cam';showUI();
+    say('Ponte frente a la cámara con buena luz. Toca la pantalla para apartar estrellas.');
+  }catch(e){
+    console.warn(e);stopStream();
+    if(mode==='cam')mode='stars';
+    say(explain(e),true);showUI();
+  }finally{starting=false;bCam.disabled=false}
+}
+
+/* ---------- foto / imagen ---------- */
+fFoto.addEventListener('change',()=>{
+  const f=fFoto.files&&fFoto.files[0];if(!f)return;
+  const url=URL.createObjectURL(f),im=new Image();
+  im.onload=()=>{
+    stopStream();photoEl=im;photoDirty=true;mode='photo';showUI();
+    say('Listo: las estrellas copian tu foto. Puedes elegir otra.');
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+  };
+  im.onerror=()=>{say('No se pudo leer esa imagen.',true);URL.revokeObjectURL(url)};
+  im.src=url;fFoto.value='';
+});
+
+/* ---------- botones ---------- */
+function showUI(){
+  const on=mode!=='stars';
+  bCol.hidden=!on;bStop.hidden=!on;bFlip.hidden=mode!=='cam';
+  bCam.textContent=mode==='cam'?'📷 Reiniciar cámara':'📷 Activar cámara';
+}
+bCam.onclick=startCam;
+bFlip.onclick=()=>{facing=facing==='user'?'environment':'user';startCam()};
+bCol.onclick=()=>{colorMode=!colorMode;bCol.textContent='Color: '+(colorMode?'real':'blanco')};
+bStop.onclick=()=>{stopStream();mode='stars';showUI();say('Miles de estrellas. Activa la cámara para que te copien.')};
+if(!window.isSecureContext&&!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){
+  say('Aviso: abierto como archivo local la cámara puede no funcionar. Si falla, usa “Foto / imagen” o súbelo a https.');
+}
+window.addEventListener('pagehide',stopStream);
+})();
+</script>
+</body>
+</html>
+
